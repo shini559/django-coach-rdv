@@ -1,0 +1,26 @@
+{% extends 'coaching/base.html' %}
+
+{% block title %}
+Mon Tableau de Bord
+{% endblock %}
+
+{% block content %}
+    <h2>Mon Tableau de Bord</h2>
+
+    {% if is_coach %}
+        <h3>Bonjour Coach {{ user.username }} !</h3>
+        <p>
+            Voici la liste de tous les rendez-vous à venir.
+        </p>
+        {# La liste des rendez-vous pour le coach viendra ici plus tard. #}
+
+    {% else %}
+        <h3>Bienvenue, {{ user.username }} !</h3>
+        <p>
+            Voici la liste de vos rendez-vous.
+        </p>
+        {# La liste des rendez-vous pour le client viendra ici plus tard. #}
+
+    {% endif %}
+
+{% endblock %}
