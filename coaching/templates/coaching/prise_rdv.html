@@ -1,0 +1,12 @@
+{% extends 'coaching/base.html' %}
+
+{% block title %}Prendre un rendez-vous{% endblock %}
+
+{% block content %}
+    <h2>Prendre un rendez-vous</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Confirmer le rendez-vous</button>
+    </form>
+{% endblock %}
