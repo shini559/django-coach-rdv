@@ -9,18 +9,26 @@ Mon Tableau de Bord
 
     {% if is_coach %}
         <h3>Bonjour Coach {{ user.username }} !</h3>
-        <p>
-            Voici la liste de tous les rendez-vous à venir.
-        </p>
-        {# La liste des rendez-vous pour le coach viendra ici plus tard. #}
-
+        <p>Voici la liste de tous les rendez-vous à venir.</p>
     {% else %}
         <h3>Bienvenue, {{ user.username }} !</h3>
-        <p>
-            Voici la liste de vos rendez-vous.
-        </p>
-        {# La liste des rendez-vous pour le client viendra ici plus tard. #}
-
+        <p>Voici la liste de vos rendez-vous. <a href="{% url 'prendre-rdv' %}">Prendre un nouveau rendez-vous</a></p>
     {% endif %}
+
+    <hr>
+
+    <h4>Liste des séances :</h4>
+    <ul>
+        {% for seance in seances %}
+            <li>
+                Le {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
+                {% if is_coach %}
+                    (Client: {{ seance.client.username }})
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>Aucun rendez-vous programmé pour le moment.</li>
+        {% endfor %}
+    </ul>
 
 {% endblock %}
