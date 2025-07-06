@@ -4,9 +4,42 @@
 
 {% block content %}
     <h2>Prendre un rendez-vous</h2>
+    <p>Veuillez d'abord sélectionner une date pour voir les créneaux disponibles.</p>
+
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Confirmer le rendez-vous</button>
+        <button type="submit" id="submitButton">Confirmer le rendez-vous</button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="date"]');
+            const timeSelect = document.querySelector('select[name="heure_debut"]');
+            const submitButton = document.getElementById('submitButton');
+
+            // Fonction pour vérifier si une date est sélectionnée
+            function checkDateSelection() {
+                if (dateInput.value === '') {
+                    timeSelect.disabled = true;
+                    submitButton.disabled = true;
+                } else {
+                    timeSelect.disabled = false;
+                    submitButton.disabled = false;
+                }
+            }
+
+            // Quand la page se charge
+            checkDateSelection();
+
+            // Quand l'utilisateur change la date
+            dateInput.addEventListener('change', function() {
+                const selectedDate = dateInput.value;
+                if (selectedDate) {
+                    // Recharge la page avec la date en paramètre
+                    window.location.href = `{% url 'prendre-rdv' %}?date=${selectedDate}`;
+                }
+            });
+        });
+    </script>
 {% endblock %}

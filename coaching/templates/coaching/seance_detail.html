@@ -1,0 +1,45 @@
+{% extends 'coaching/base.html' %}
+
+{% block title %}Détail de la séance{% endblock %}
+
+{% block content %}
+    <h2>Détail de la séance du {{ seance.date|date:"d/m/Y" }}</h2>
+
+    <ul>
+        <li>
+            <strong>Client :</strong>
+            {% if seance.client.first_name and seance.client.last_name %}
+                {{ seance.client.first_name }} {{ seance.client.last_name }}
+            {% else %}
+                {{ seance.client.username }}
+            {% endif %}
+        </li>
+         <li>
+            <strong>Email :</strong> {{ seance.client.email }}
+        </li>
+        <li>
+            <strong>Téléphone :</strong>
+            {% if seance.client.profile.telephone %}
+                {{ seance.client.profile.telephone }}
+            {% else %}
+                Non renseigné
+            {% endif %}
+        </li>
+        <hr>
+        <li><strong>Date :</strong> {{ seance.date|date:"d/m/Y" }}</li>
+        <li><strong>Heure :</strong> {{ seance.heure_debut|time:"H:i" }}</li>
+        <li><strong>Sujet :</strong> {{ seance.sujet }}</li>
+        <li><strong>Statut :</strong> {{ seance.get_statut_display }}</li>
+    </ul>
+
+    {% if is_coach %}
+        <hr>
+        <h4>Notes du coach :</h4>
+        <p>{{ seance.notes_coach|default:"Aucune note." }}</p>
+        <a href="{% url 'seance-edit' seance.pk %}" class="button">Modifier cette séance</a>
+    {% endif %}
+
+    <hr>
+    <a href="{% url 'dashboard' %}">Retour au tableau de bord</a>
+
+{% endblock %}
