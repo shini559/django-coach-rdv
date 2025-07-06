@@ -1,13 +1,29 @@
-{% extends 'coaching/base.html'%}
-{% block title %}Accueil - Votre Coach Personnel {% endblock %}
+{% extends 'coaching/base.html' %}
+
+{% block title %}
+Accueil - Votre Coach Personnel
+{% endblock %}
 
 {% block content %}
-<h2>Bienvenue sur Book My Coach</h2>
-<p>
-    Découvrez comment je peux vous aider à atteindre vos objectifs personnels et professionnels. Que vous cherchiez à améliorer votre bien-être, à développer vos compétences ou à surmonter des obstacles, je suis là pour vous accompagner.
-</p>
-<p>
-    <strong>Le meilleur moment pour agir, c’était hier. Le deuxième meilleur moment, c’est maintenant</strong>
-    <strong>🔥Ce n’est pas un rendez-vous, c’est une décision.🔥</strong>
-</p>
+
+    {% if user.is_authenticated %}
+        {# --- Contenu pour les utilisateurs connectés --- #}
+        <h2>Bienvenue, {{ user.username }} !</h2>
+        <p>Vous êtes déjà connecté à votre espace personnel.</p>
+        <p style="margin-top: 20px;">
+            <a href="{% url 'dashboard' %}" class="button">Accéder à mon tableau de bord</a>
+        </p>
+
+    {% else %}
+        {# --- Contenu pour les visiteurs (ton texte personnalisé) --- #}
+        <h2>Bienvenue sur Book My Coach</h2>
+        <p>
+            Découvrez comment je peux vous aider à atteindre vos objectifs personnels et professionnels. Que vous cherchiez à améliorer votre bien-être, à développer vos compétences ou à surmonter des obstacles, je suis là pour vous accompagner.
+        </p>
+        <p>
+            <strong>Le meilleur moment pour agir, c’était hier. Le deuxième meilleur moment, c’est maintenant.</strong><br>
+            <strong>🔥Ce n’est pas un rendez-vous, c’est une décision.🔥</strong>
+        </p>
+    {% endif %}
+
 {% endblock %}

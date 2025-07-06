@@ -3,44 +3,70 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from coaching.models import Seance
+from .forms import UserUpdateForm, ProfileUpdateForm
+from django.contrib.auth import login
+
 
 def signup(request):
     """
-    Gère l'inscription d'un nouvel utilisateur.
+    Gère l'inscription et la connexion automatique d'un nouvel utilisateur.
     """
     if request.method == 'POST':
-        # Le formulaire est soumis avec des données
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save() # Crée et sauvegarde le nouvel utilisateur
-            username = form.cleaned_data.get('username')
-            messages.success(request, f"Votre compte a été créé avec succès, {username} ! Vous pouvez maintenant vous connecter.")
-            return redirect('home') # Redirige vers la page d'accueil après inscription
+            # La méthode form.save() renvoie l'objet utilisateur nouvellement créé
+            user = form.save()
+
+            # 2. Connecter l'utilisateur nouvellement créé
+            login(request, user)
+
+            messages.success(request,
+                             f"Bienvenue, {user.username} ! Votre compte a été créé et vous êtes maintenant connecté.")
+
+            # 3. Rediriger vers le tableau de bord
+            return redirect('dashboard')
     else:
-        # La page est accédée via une requête GET, on affiche un formulaire vide
         form = UserCreationForm()
 
-    # Passe le formulaire au template pour l'affichage
     return render(request, 'users/signup.html', {'form': form})
 
 
 @login_required
 def dashboard(request):
-    """
-    Affiche un tableau de bord différent pour le coach et pour le client,
-    avec la liste des séances appropriées.
-    """
     is_coach = request.user.groups.filter(name='Coach').exists()
 
     if is_coach:
-        # Le coach voit toutes les séances, triées par date et heure
-        seances = Seance.objects.all().order_by('date', 'heure_debut')
+        seances = Seance.objects.all()
     else:
-        # Le client ne voit que ses propres séances
-        seances = Seance.objects.filter(client=request.user).order_by('date', 'heure_debut')
+        seances = Seance.objects.filter(client=request.user)
+
+    # On filtre les séances par statut
+    seances_a_venir = seances.filter(statut='A_VENIR').order_by('date', 'heure_debut')
+    seances_passees = seances.filter(statut__in=['PASSEE', 'ANNULEE']).order_by('-date', '-heure_debut')
 
     context = {
         'is_coach': is_coach,
-        'seances': seances,  # 2. Ajouter les séances au contexte
+        'seances_a_venir': seances_a_venir,
+        'seances_passees': seances_passees,
     }
     return render(request, 'users/dashboard.html', context)
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, instance=request.user.profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Votre profil a été mis à jour avec succès !')
+            return redirect('dashboard')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+    return render(request, 'users/edit_profile.html', context)
