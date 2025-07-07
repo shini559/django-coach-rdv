@@ -13,7 +13,7 @@ class SeanceForm(forms.ModelForm):
 class SeanceNotesForm(forms.ModelForm):
     class Meta:
         model = Seance
-        fields = ['statut', 'notes_coach']
+        fields = ['notes_coach']
 
 
 class SeanceForm(forms.ModelForm):
