@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import SeanceForm, SeanceNotesForm
 from .models import Seance
 from datetime import datetime, timedelta, time
+from django.http import JsonResponse
 
 def home(request):
     """
@@ -110,3 +111,24 @@ def seance_detail(request, pk):
         'is_coach': is_coach,
     }
     return render(request, 'coaching/seance_detail.html', context)
+
+
+@login_required
+def all_seances_api(request):
+    # On s'assure que seul le coach peut voir toutes les séances
+    if not request.user.groups.filter(name='Coach').exists():
+        return JsonResponse({'error': 'Non autorisé'}, status=403)
+
+    seances = Seance.objects.all()
+
+    # On formate les données pour FullCalendar
+    events = []
+    for seance in seances:
+        events.append({
+            'title': f"{seance.sujet} - {seance.client.first_name or seance.client.username}",
+            'start': datetime.combine(seance.date, seance.heure_debut).isoformat(),
+            'end': (datetime.combine(seance.date, seance.heure_debut) + timedelta(minutes=30)).isoformat(),
+            'url': f"/seance/{seance.pk}/",  # Lien vers la page de détail
+        })
+
+    return JsonResponse(events, safe=False)

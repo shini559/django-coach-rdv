@@ -6,56 +6,75 @@
     <h2>Mon Tableau de Bord</h2>
 
     {% if is_coach %}
-        <h3>Bonjour Coach {{ user.username }} !</h3>
+        {# --- VUE POUR LE COACH --- #}
+        <h3>Bonjour Coach {{ user.username }} ! Voici votre planning.</h3>
+
+        {# Le conteneur où le calendrier sera dessiné par JavaScript #}
+        <div id='calendar'></div>
+
     {% else %}
+        {# --- VUE POUR LE CLIENT (ne change pas) --- #}
         <h3>Bienvenue, {{ user.username }} !</h3>
         <p><a href="{% url 'prendre-rdv' %}">Prendre un nouveau rendez-vous</a></p>
+        <hr>
+
+        <h4>🗓️ Séances à venir</h4>
+        <ul>
+            {% for seance in seances_a_venir %}
+                <li>
+                    <a href="{% url 'seance-detail' seance.pk %}">
+                        Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
+                    </a>
+                </li>
+            {% empty %}
+                <li>Aucune séance à venir.</li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <h4>📜 Historique des séances</h4>
+        <ul>
+            {% for seance in seances_passees %}
+                <li>
+                    <a href="{% url 'seance-detail' seance.pk %}">
+                        Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
+                    </a>
+                </li>
+            {% empty %}
+                <li>Aucune séance dans l'historique.</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
-    <hr>
+{% endblock %}
 
-    <h4>🗓️ Séances à venir</h4>
-    <ul>
-        {% for seance in seances_a_venir %}
-            <li>
-                <a href="{% url 'seance-detail' seance.pk %}">
-                Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
-                </a>
-                {% if is_coach %}
-                    (Client:
-                        {% if seance.client.first_name and seance.client.last_name %}
-                        {{ seance.client.first_name }} {{ seance.client.last_name }}
-                    {% else %}
-                        {{ seance.client.username }}
-                    {% endif %})
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>Aucune séance à venir.</li>
-        {% endfor %}
-    </ul>
 
-    <hr>
+{% block extra_js %}
+    {# On ajoute ce bloc pour le JavaScript spécifique à cette page #}
+    {% if is_coach %}
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
-    <h4>📜 Historique des séances</h4>
-    <ul>
-        {% for seance in seances_passees %}
-          <li>
-            <a href="{% url 'seance-detail' seance.pk %}">
-                Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
-            </a>
-            {% if is_coach %}
-                    (Client:
-                        {% if seance.client.first_name and seance.client.last_name %}
-                        {{ seance.client.first_name }} {{ seance.client.last_name }}
-                    {% else %}
-                        {{ seance.client.username }}
-                    {% endif %})
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>Aucune séance dans l'historique.</li>
-        {% endfor %}
-    </ul>
-
+        <script>
+            // 2. Initialisation du calendrier
+            document.addEventListener('DOMContentLoaded', function() {
+                var calendarEl = document.getElementById('calendar');
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth', // Vue par mois par défaut
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    locale: 'fr', // Mettre le calendrier en français
+                    buttonText: {
+                        today:    "Aujourd'hui",
+                        month:    'Mois',
+                        week:     'Semaine',
+                        day:      'Jour',
+                    },
+                    events: "{% url 'all-seances-api' %}",
+                });
+                calendar.render();
+            });
+        </script>
+    {% endif %}
 {% endblock %}
