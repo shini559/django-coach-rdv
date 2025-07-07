@@ -3,78 +3,247 @@
 {% block title %}Mon Tableau de Bord{% endblock %}
 
 {% block content %}
-    <h2>Mon Tableau de Bord</h2>
+<style>
+    /* Style pour les cartes de rendez-vous du client */
+    .rdv-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px; /* Espace entre les cartes */
+    }
+    .rdv-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .rdv-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #007bff;
+    }
+    .rdv-card-header {
+        font-weight: bold;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+    }
+    .rdv-card-body {
+        font-size: 0.9em;
+    }
 
-    {% if is_coach %}
-        {# --- VUE POUR LE COACH --- #}
-        <h3>Bonjour Coach {{ user.username }} ! Voici votre planning.</h3>
+    /* Style pour le panneau latéral du client */
+    .side-panel {
+        position: fixed;
+        top: 0;
+        right: -400px; /* Caché par défaut */
+        width: 380px;
+        height: 100%;
+        background-color: white;
+        box-shadow: -4px 0 15px rgba(0,0,0,0.15);
+        padding: 20px;
+        transition: right 0.4s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    .side-panel.is-visible {
+        right: 0; /* Apparaît */
+    }
+    .side-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .close-btn {
+        font-size: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+</style>
 
-        {# Le conteneur où le calendrier sera dessiné par JavaScript #}
-        <div id='calendar'></div>
+<div class="dashboard-container">
+    <div class="main-content">
+        <h2>Mon Tableau de Bord</h2>
 
-    {% else %}
-        {# --- VUE POUR LE CLIENT (ne change pas) --- #}
-        <h3>Bienvenue, {{ user.username }} !</h3>
-        <p><a href="{% url 'prendre-rdv' %}">Prendre un nouveau rendez-vous</a></p>
-        <hr>
+        {% if is_coach %}
+            {# --- VUE POUR LE COACH --- #}
+            <h3>Bonjour Coach {{ user.username }} ! Voici votre planning.</h3>
 
-        <h4>🗓️ Séances à venir</h4>
-        <ul>
-            {% for seance in seances_a_venir %}
-                <li>
-                    <a href="{% url 'seance-detail' seance.pk %}">
-                        Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
-                    </a>
-                </li>
-            {% empty %}
-                <li>Aucune séance à venir.</li>
-            {% endfor %}
-        </ul>
-        <hr>
-        <h4>📜 Historique des séances</h4>
-        <ul>
-            {% for seance in seances_passees %}
-                <li>
-                    <a href="{% url 'seance-detail' seance.pk %}">
-                        Séance du {{ seance.date|date:"d/m/Y" }} à {{ seance.heure_debut|time:"H:i" }} - Sujet : {{ seance.sujet }}
-                    </a>
-                </li>
-            {% empty %}
-                <li>Aucune séance dans l'historique.</li>
-            {% endfor %}
-        </ul>
+            <div id='calendar'></div>
+
+        {% else %}
+            {# --- VUE POUR LE CLIENT --- #}
+            <h3>Bienvenue, {{ user.username }} !</h3>
+            <p><a href="{% url 'prendre-rdv' %}">Prendre un nouveau rendez-vous</a></p>
+            <hr>
+
+            <h4>🗓️ Vos rendez-vous à venir</h4>
+            <div class="rdv-card-list">
+                {% for seance in seances_a_venir %}
+                    <div class="rdv-card" data-seance-id="{{ seance.pk }}">
+                        <div class="rdv-card-header">
+                            📅 {{ seance.date|date:"l j F Y" }} -
+                            🕒 {{ seance.heure_debut|time:"H:i" }}
+                        </div>
+                        <div class="rdv-card-body">
+                            <strong>Sujet :</strong> {{ seance.get_sujet_display }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Aucune séance à venir.</p>
+                {% endfor %}
+            </div>
+
+            <hr>
+            <h4>📜 Historique des séances</h4>
+            <div class="rdv-card-list">
+                {% for seance in seances_passees %}
+                    <div class="rdv-card" data-seance-id="{{ seance.pk }}">
+                        <div class="rdv-card-header">
+                            📅 {{ seance.date|date:"l j F Y" }} -
+                            🕒 {{ seance.heure_debut|time:"H:i" }}
+                        </div>
+                        <div class="rdv-card-body">
+                            <strong>Sujet :</strong> {{ seance.get_sujet_display }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Aucune séance dans l'historique.</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if not is_coach %}
+        <div id="seance-detail-panel" class="side-panel">
+            <div class="side-panel-header">
+                <h4>Détail du rendez-vous</h4>
+                <button class="close-btn" id="close-panel-btn">&times;</button>
+            </div>
+            <div id="panel-content">
+                <p>Veuillez sélectionner un rendez-vous.</p>
+            </div>
+        </div>
     {% endif %}
+</div>
 
 {% endblock %}
 
 
 {% block extra_js %}
-    {# On ajoute ce bloc pour le JavaScript spécifique à cette page #}
     {% if is_coach %}
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-
         <script>
-            // 2. Initialisation du calendrier
             document.addEventListener('DOMContentLoaded', function() {
                 var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth', // Vue par mois par défaut
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    locale: 'fr', // Mettre le calendrier en français
-                    buttonText: {
-                        today:    "Aujourd'hui",
-                        month:    'Mois',
-                        week:     'Semaine',
-                        day:      'Jour',
-                    },
-                    events: "{% url 'all-seances-api' %}",
-                });
-                calendar.render();
+                if (calendarEl) {
+                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,listWeek'
+                        },
+                        locale: 'fr',
+                        buttonText: {
+                            today:    "Aujourd'hui",
+                            month:    'Mois',
+                            week:     'Semaine',
+                            day:      'Jour',
+                            list:     'Liste'
+                        },
+                        events: "{% url 'all-seances-api' %}"
+                    });
+                    calendar.render();
+                }
             });
         </script>
+    {% else %}
+        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const detailPanel = document.getElementById('seance-detail-panel');
+        if (!detailPanel) return;
+
+        const panelContent = document.getElementById('panel-content');
+        const closePanelBtn = document.getElementById('close-panel-btn');
+
+        function openPanel() { detailPanel.classList.add('is-visible'); }
+        function closePanel() {
+            detailPanel.classList.remove('is-visible');
+            detailPanel.dataset.activeSeanceId = '';
+        }
+
+        document.querySelectorAll('.rdv-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const clickedSeanceId = this.dataset.seanceId;
+                const activeSeanceId = detailPanel.dataset.activeSeanceId;
+                const isPanelVisible = detailPanel.classList.contains('is-visible');
+
+                if (isPanelVisible && clickedSeanceId === activeSeanceId) {
+                    closePanel();
+                    return;
+                }
+
+                const apiUrl = `/api/seance/${clickedSeanceId}/`;
+                detailPanel.dataset.activeSeanceId = clickedSeanceId;
+
+                panelContent.innerHTML = '<p>Chargement...</p>';
+                openPanel();
+
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        panelContent.innerHTML = `
+                            <p><strong>Date :</strong> ${data.date}</p>
+                            <p><strong>Heure :</strong> ${data.heure_debut}</p>
+                            <p><strong>Sujet :</strong> ${data.sujet}</p>
+                            <hr>
+                            <a href="/prendre-rdv/?reschedule_id=${data.id}" class="btn-deplacer">Déplacer le RDV</a>
+                            <button class="btn-annuler" data-seance-id="${data.id}" style="background-color: #dc3545; color: white;">Annuler le RDV</button>
+                        `;
+                    })
+                    .catch(error => console.error('Erreur:', error));
+            });
+        });
+
+        closePanelBtn.addEventListener('click', closePanel);
+
+
+        panelContent.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('btn-annuler')) {
+                const seanceId = event.target.dataset.seanceId;
+                if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+                    const cancelUrl = `/api/seance/${seanceId}/cancel/`;
+                    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+                    fetch(cancelUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message); // Affiche le message de succès
+                            closePanel(); // Ferme le panneau
+                            // Supprime la carte du RDV de la page
+                            document.querySelector(`.rdv-card[data-seance-id="${seanceId}"]`).remove();
+                        } else {
+                            alert('Erreur : ' + data.error);
+                        }
+                    });
+                }
+            }
+        });
+    });
+</script>
     {% endif %}
 {% endblock %}

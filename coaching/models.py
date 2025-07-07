@@ -7,11 +7,7 @@ class Seance(models.Model):
     """
     Représente un rendez-vous entre un client et un coach.
     """
-    STATUS_CHOICES = [
-        ('A_VENIR', 'À venir'),
-        ('PASSEE', 'Passée'),
-        ('ANNULEE', 'Annulée'),
-    ]
+
 
     SUJET_CHOICES = [
         ('PERTE POIDS', '🔥 Perte de poids / sèche'),
@@ -34,7 +30,6 @@ class Seance(models.Model):
     date = models.DateField()
     heure_debut = models.TimeField()
     sujet = models.CharField(max_length=100, choices=SUJET_CHOICES)
-    statut = models.CharField(max_length=10, choices=STATUS_CHOICES, default='A_VENIR')
     notes_coach = models.TextField(blank=True, null=True)
 
 

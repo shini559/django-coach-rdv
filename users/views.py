@@ -5,6 +5,7 @@ from django.contrib import messages
 from coaching.models import Seance
 from .forms import UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth import login
+from django.utils import timezone
 
 
 def signup(request):
@@ -40,9 +41,12 @@ def dashboard(request):
     else:
         seances = Seance.objects.filter(client=request.user)
 
-    # On filtre les séances par statut
-    seances_a_venir = seances.filter(statut='A_VENIR').order_by('date', 'heure_debut')
-    seances_passees = seances.filter(statut__in=['PASSEE', 'ANNULEE']).order_by('-date', '-heure_debut')
+    # 2. On récupère la date du jour
+    today = timezone.now().date()
+
+    # 3. On filtre les séances en se basant sur la date
+    seances_a_venir = seances.filter(date__gte=today).order_by('date', 'heure_debut')
+    seances_passees = seances.filter(date__lt=today).order_by('-date', '-heure_debut')
 
     context = {
         'is_coach': is_coach,

@@ -29,7 +29,6 @@
         <li><strong>Date :</strong> {{ seance.date|date:"d/m/Y" }}</li>
         <li><strong>Heure :</strong> {{ seance.heure_debut|time:"H:i" }}</li>
         <li><strong>Sujet :</strong> {{ seance.sujet }}</li>
-        <li><strong>Statut :</strong> {{ seance.get_statut_display }}</li>
     </ul>
 
     {% if is_coach %}
