@@ -1,13 +1,30 @@
 {% extends 'coaching/base.html' %}
-{% load static %}
+{% load crispy_forms_tags %}
 
-{% block title %}Inscription - Book My Coach {% endblock %}
+{% block title %}Inscription{% endblock %}
 
 {% block content %}
-<h2>Crée un compte</h2>
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">S'inscrire</button>
-</form>
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title text-center">Créer un compte</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {{ form|crispy }}
+
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small>Déjà un compte ? <a href="{% url 'login' %}">Connectez-vous ici</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

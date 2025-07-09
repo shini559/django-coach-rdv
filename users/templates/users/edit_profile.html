@@ -1,19 +1,33 @@
 {% extends 'coaching/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Modifier mon profil{% endblock %}
 
 {% block content %}
-    <h2>Modifier mon profil</h2>
-    <form method="post">
-        {% csrf_token %}
-        <fieldset>
-            <legend>Informations du compte</legend>
-            {{ user_form.as_p }}
-        </fieldset>
-        <fieldset>
-            <legend>Profil</legend>
-            {{ profile_form.as_p }}
-        </fieldset>
-        <button type="submit">Sauvegarder les changements</button>
-    </form>
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title text-center">Modifier mon profil</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <fieldset>
+                            <legend>Informations du compte</legend>
+                            {{ user_form|crispy }}
+                        </fieldset>
+                        <hr>
+                        <fieldset>
+                            <legend>Profil</legend>
+                            {{ profile_form|crispy }}
+                        </fieldset>
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary">Sauvegarder les changements</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

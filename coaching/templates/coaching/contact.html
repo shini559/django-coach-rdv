@@ -1,0 +1,36 @@
+{% extends 'coaching/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Contact{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Contactez-moi</h2></div>
+                <div class="card-body">
+                    <p>Une question ? Une demande particulière ? N'hésitez pas à remplir le formulaire ci-dessous.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary mt-3">Envoyer le message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Suivez-moi</h2></div>
+                <div class="card-body">
+                    <p>Retrouvez mes conseils et actualités sur les réseaux sociaux :</p>
+                    <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" class="btn btn-dark w-100 mb-2"><i class="bi bi-instagram" ></i> Instagram</a>
+                    <a href="https://www.tiktok.com/explore" target="_blank" rel="noopener noreferrer" class="btn btn-dark w-100 mb-2"><i class="bi bi-tiktok"></i> TikTok</a>
+                    <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-dark w-100"><i class="bi bi-youtube"></i> YouTube</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

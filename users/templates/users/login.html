@@ -1,14 +1,28 @@
 {% extends 'coaching/base.html' %}
-
-{% block title %}
-Connexion - Mon Site de Coaching
-{% endblock %}
+{% load crispy_forms_tags %} {% block title %}Connexion{% endblock %}
 
 {% block content %}
-    <h2>Connexion</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Se connecter</button>
-    </form>
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title text-center">Connexion</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {{ form|crispy }}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small>Pas encore de compte ? <a href="{% url 'signup' %}">Inscrivez-vous ici</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
