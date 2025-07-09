@@ -15,91 +15,58 @@ def home(request):
     return render(request, 'coaching/accueil.html', context)
 
 
+# coaching/views.py
+
 @login_required
 def prise_rdv(request):
-    """
-    Gère la prise de rendez-vous, le calcul des créneaux disponibles
-    et la logique de déplacement d'un rendez-vous existant.
-    """
-    # Étape 1 : Récupérer le coach
     try:
         coach = User.objects.get(groups__name='Coach')
     except User.DoesNotExist:
-        messages.error(request, "Le coach n'est pas configuré. Prise de RDV impossible.")
+        messages.error(request, "Le coach n'est pas configuré.")
         return redirect('home')
 
-    # Étape 2 : Gérer un éventuel déplacement de RDV
-    reschedule_id = request.GET.get('reschedule_id')
-    initial_data = {}
-    if reschedule_id:
-        seance_a_deplacer = get_object_or_404(Seance, pk=reschedule_id, client=request.user)
-        initial_data['sujet'] = seance_a_deplacer.sujet
-        request.session['seance_a_deplacer_id'] = seance_a_deplacer.id
+    # On détermine la date sélectionnée, que ce soit en GET ou en POST
+    date_selectionnee_str = request.GET.get('date') if request.method == 'GET' else request.POST.get('date')
 
-    # Étape 3 : Calculer les créneaux disponibles en fonction de la date choisie
     creneaux_disponibles = []
-    date_selectionnee = request.GET.get('date')
-
-    if date_selectionnee:
+    if date_selectionnee_str:
         try:
-            date_obj = datetime.strptime(date_selectionnee, '%Y-%m-%d').date()
-
-            # Définir les heures de travail et la durée des séances
+            date_obj = datetime.strptime(date_selectionnee_str, '%Y-%m-%d').date()
             heure_debut_journee = time(9, 0)
             heure_fin_journee = time(18, 0)
             duree_seance = timedelta(minutes=30)
-
-            # Générer tous les créneaux théoriques de la journée
             tous_les_creneaux = []
             creneau_actuel = datetime.combine(date_obj, heure_debut_journee)
             heure_fin_datetime = datetime.combine(date_obj, heure_fin_journee)
             while creneau_actuel < heure_fin_datetime:
                 tous_les_creneaux.append(creneau_actuel.time())
                 creneau_actuel += duree_seance
-
-            # Récupérer les créneaux déjà réservés pour ce jour
             seances_reservees = Seance.objects.filter(date=date_obj, coach=coach)
             creneaux_reserves = [s.heure_debut for s in seances_reservees]
-
-            # Filtrer pour ne garder que les créneaux où il n'y a pas de réservation
             creneaux_disponibles_obj = [t for t in tous_les_creneaux if t not in creneaux_reserves]
-
-            # Formatter la liste pour le menu déroulant du formulaire
             creneaux_disponibles = [(t.strftime('%H:%M'), f"{t.strftime('%Hh%M')}") for t in creneaux_disponibles_obj]
-        except ValueError:
-            # Gère le cas où la date dans l'URL est mal formée
+        except (ValueError, TypeError):
             messages.error(request, "Format de date invalide.")
-            date_selectionnee = None
+            date_selectionnee_str = None
 
-    # Étape 4 : Gérer la soumission du formulaire (méthode POST)
     if request.method == 'POST':
         form = SeanceForm(request.POST, creneaux=creneaux_disponibles)
         if form.is_valid():
             seance = form.save(commit=False)
             seance.client = request.user
             seance.coach = coach
-            # On s'assure que les données de date et heure sont correctement formatées
-            seance.date = datetime.strptime(request.POST.get('date'), '%Y-%m-%d').date()
-            seance.heure_debut = datetime.strptime(request.POST.get('heure_debut'), '%H:%M').time()
-            seance.save()
-
-            # Gérer la suppression de l'ancien RDV si c'était un déplacement
-            old_seance_id = request.session.get('seance_a_deplacer_id')
-            if old_seance_id:
-                try:
-                    Seance.objects.get(pk=old_seance_id).delete()
-                    del request.session['seance_a_deplacer_id']
-                    messages.success(request, 'Votre rendez-vous a été déplacé avec succès !')
-                except Seance.DoesNotExist:
-                    pass
-            else:
-                messages.success(request, 'Votre rendez-vous a été pris avec succès !')
-
+            seance.save() # Le formulaire gère déjà la conversion des champs
+            messages.success(request, 'Votre rendez-vous a été pris avec succès !')
             return redirect('dashboard')
     else:
-        # Étape 5 : Gérer l'affichage initial du formulaire (méthode GET)
-        if date_selectionnee:
-            initial_data['date'] = date_selectionnee
+        # Gérer la logique de déplacement pour pré-remplir le sujet
+        reschedule_id = request.GET.get('reschedule_id')
+        initial_data = {}
+        if reschedule_id:
+            seance_a_deplacer = get_object_or_404(Seance, pk=reschedule_id, client=request.user)
+            initial_data['sujet'] = seance_a_deplacer.sujet
+        if date_selectionnee_str:
+            initial_data['date'] = date_selectionnee_str
         form = SeanceForm(initial=initial_data, creneaux=creneaux_disponibles)
 
     return render(request, 'coaching/prise_rdv.html', {'form': form})
