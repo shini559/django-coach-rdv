@@ -34,3 +34,7 @@ class SeanceForm(forms.ModelForm):
 
         # On met à jour les choix du champ heure_debut avec la liste des créneaux
         self.fields['heure_debut'].choices = creneaux_disponibles
+class ContactForm(forms.Form):
+    nom = forms.CharField(max_length=100, label="Votre nom")
+    email = forms.EmailField(label="Votre email")
+    message = forms.CharField(widget=forms.Textarea, label="Votre message")

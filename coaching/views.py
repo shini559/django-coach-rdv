@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import SeanceForm, SeanceNotesForm
+from .forms import SeanceForm, SeanceNotesForm, ContactForm
 from .models import Seance
 from datetime import datetime, timedelta, time
 from django.http import JsonResponse
@@ -203,3 +203,20 @@ def cancel_seance(request, pk):
             return JsonResponse({'success': False, 'error': 'Non autorisé'}, status=403)
 
     return JsonResponse({'success': False, 'error': 'Requête invalide'}, status=400)
+
+def contact_view(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # Pour l'instant, on affiche les données dans la console.
+            # Plus tard, on pourrait envoyer un email ici.
+            print("Nouveau message de contact :")
+            print(f"Nom: {form.cleaned_data['nom']}")
+            print(f"Email: {form.cleaned_data['email']}")
+            print(f"Message: {form.cleaned_data['message']}")
+            messages.success(request, 'Votre message a bien été envoyé ! Nous vous répondrons bientôt.')
+            return redirect('home')
+    else:
+        form = ContactForm()
+
+    return render(request, 'coaching/contact.html', {'form': form})

@@ -34,6 +34,7 @@
         font-size: 0.9em;
     }
 
+
     /* Style pour le panneau latéral du client */
     .side-panel {
         position: fixed;
@@ -48,22 +49,33 @@
         z-index: 1000;
         overflow-y: auto;
     }
+    .side-panel {
+    position: fixed;
+    top: 0;
+    right: -450px; /* Légèrement plus large et caché */
+    width: 420px;
+    height: 100%;
+    /* On utilise les couleurs du thème sombre */
+    background-color: #343a40;
+    border-left: 1px solid #495057; /* Bordure subtile */
+
+    box-shadow: -4px 0 15px rgba(0,0,0,0.25);
+    padding: 20px;
+    transition: right 0.4s ease-in-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
     .side-panel.is-visible {
-        right: 0; /* Apparaît */
-    }
-    .side-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
+        right: 0;
     }
     .close-btn {
         font-size: 24px;
         border: none;
         background: none;
         cursor: pointer;
+    }
+     .fc-event-title {
+        white-space: normal !important;
     }
 </style>
 
@@ -137,6 +149,7 @@
 
 
 {% block extra_js %}
+{{ block.super }}
     {% if is_coach %}
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
         <script>
@@ -200,14 +213,16 @@
                     .then(response => response.json())
                     .then(data => {
                         panelContent.innerHTML = `
-                            <p><strong>Date :</strong> ${data.date}</p>
-                            <p><strong>Heure :</strong> ${data.heure_debut}</p>
-                            <p><strong>Sujet :</strong> ${data.sujet}</p>
-                            <hr>
-                            <a href="/prendre-rdv/?reschedule_id=${data.id}" class="btn-deplacer">Déplacer le RDV</a>
-                            <button class="btn-annuler" data-seance-id="${data.id}" style="background-color: #dc3545; color: white;">Annuler le RDV</button>
-                        `;
-                    })
+                        <p><strong>Date :</strong> ${data.date}</p>
+                        <p><strong>Heure :</strong> ${data.heure_debut}</p>
+                        <p><strong>Sujet :</strong> ${data.sujet}</p>
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <a href="/prendre-rdv/?reschedule_id=${data.id}" class="btn btn-outline-primary">Déplacer le RDV</a>
+                            <button class="btn btn-danger btn-annuler" data-seance-id="${data.id}">Annuler le RDV</button>
+                        </div>
+                    `;
+                                        })
                     .catch(error => console.error('Erreur:', error));
             });
         });

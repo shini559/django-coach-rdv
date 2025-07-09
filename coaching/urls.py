@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/all_seances/', views.all_seances_api, name='all-seances-api'),
     path('api/seance/<int:pk>/', views.seance_detail_api, name='seance-detail-api'),
     path('api/seance/<int:pk>/cancel/', views.cancel_seance, name='cancel-seance-api'),
+    path('contact/', views.contact_view, name='contact'),
 ]

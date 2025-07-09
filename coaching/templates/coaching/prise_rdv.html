@@ -1,26 +1,40 @@
 {% extends 'coaching/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Prendre un rendez-vous{% endblock %}
 
 {% block content %}
-    <h2>Prendre un rendez-vous</h2>
-    <p>Veuillez d'abord sélectionner une date pour voir les créneaux disponibles.</p>
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title text-center">Prendre un rendez-vous</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Veuillez d'abord sélectionner une date pour voir les créneaux disponibles.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" id="submitButton" class="btn btn-primary">Confirmer le rendez-vous</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" id="submitButton">Confirmer le rendez-vous</button>
-    </form>
-
+{% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Le script pour les créneaux dynamiques reste exactement le même
             const dateInput = document.querySelector('input[name="date"]');
             const timeSelect = document.querySelector('select[name="heure_debut"]');
             const submitButton = document.getElementById('submitButton');
 
-            // Fonction pour vérifier si une date est sélectionnée
             function checkDateSelection() {
-                if (dateInput.value === '') {
+                if (!dateInput.value) {
                     timeSelect.disabled = true;
                     submitButton.disabled = true;
                 } else {
@@ -29,14 +43,11 @@
                 }
             }
 
-            // Quand la page se charge
             checkDateSelection();
 
-            // Quand l'utilisateur change la date
             dateInput.addEventListener('change', function() {
                 const selectedDate = dateInput.value;
                 if (selectedDate) {
-                    // Recharge la page avec la date en paramètre
                     window.location.href = `{% url 'prendre-rdv' %}?date=${selectedDate}`;
                 }
             });

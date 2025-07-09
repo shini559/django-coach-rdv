@@ -1,29 +1,157 @@
 {% extends 'coaching/base.html' %}
+{% load static %}
 
-{% block title %}
-Accueil - Votre Coach Personnel
-{% endblock %}
+{% block title %}Votre Coach Sportif Personnalisé{% endblock %}
 
 {% block content %}
 
-    {% if user.is_authenticated %}
-        {# --- Contenu pour les utilisateurs connectés --- #}
-        <h2>Bienvenue, {{ user.username }} !</h2>
-        <p>Vous êtes déjà connecté à votre espace personnel.</p>
-        <p style="margin-top: 20px;">
-            <a href="{% url 'dashboard' %}" class="button">Accéder à mon tableau de bord</a>
-        </p>
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show-section');
+                }
+            });
+        });
 
-    {% else %}
-        {# --- Contenu pour les visiteurs (ton texte personnalisé) --- #}
-        <h2>Bienvenue sur Book My Coach</h2>
-        <p>
-            Découvrez comment je peux vous aider à atteindre vos objectifs personnels et professionnels. Que vous cherchiez à améliorer votre bien-être, à développer vos compétences ou à surmonter des obstacles, je suis là pour vous accompagner.
-        </p>
-        <p>
-            <strong>Le meilleur moment pour agir, c’était hier. Le deuxième meilleur moment, c’est maintenant.</strong><br>
-            <strong>🔥Ce n’est pas un rendez-vous, c’est une décision.🔥</strong>
-        </p>
-    {% endif %}
+        const hiddenElements = document.querySelectorAll('.hidden-section');
+        hiddenElements.forEach((el) => observer.observe(el));
+    });
+</script>
+{% endblock %}
+<div class="px-4 py-5 text-center bg-body-tertiary hidden-section" xmlns="http://www.w3.org/1999/html">
+        <h1 class="display-5 fw-bold text-body-emphasis">Transforme ton corps, dépasse tes limites</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">Rejoins des centaines de personnes qui ont atteint leurs objectifs grâce à un accompagnement sur mesure, adapté à ton rythme et à tes ambitions.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{% url 'signup' %}" type="button" class="btn btn-primary btn-lg px-4 gap-3">Réserve ta séance gratuite</a>
+            </div>
+        </div>
+    </div>
 
+    <div class="container hidden-section">
+        <div class="row align-items-center my-5">
+            <div class="col-md-4 text-center">
+                <img src="{% static 'coaching/images/coach.png' %}" class="img-fluid rounded-circle" alt="Photo du coach">
+            </div>
+            <div class="col-md-8 hidden-section">
+                <h2>Wassim, Coach Sportif Certifié</h2>
+                <p class="text-muted">Spécialisé en perte de poids, prise de masse et remise en forme.</p>
+                <p>Passionné par le potentiel du corps humain, ma mission est de vous fournir les outils, la motivation et l'expertise pour non seulement atteindre vos objectifs, mais aussi pour construire des habitudes saines et durables. Chaque programme est une collaboration, conçue pour vous et avec vous.</p>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <div class="my-5 text-center">
+    <h2>Mes Services</h2>
+    <div class="row mt-4">
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Coaching en salle / à domicile</h5>
+                    <p class="card-text">Un suivi personnalisé dans votre environnement pour un maximum d'efficacité.</p>
+                    <div class="mt-auto">
+                        <span class="fs-4 fw-bold">60€</span>
+                        <span class="text-muted">/ séance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Programmes personnalisés</h5>
+                    <p class="card-text">Prise de masse, perte de poids... Un plan d'action créé pour vos objectifs.</p>
+                    <div class="mt-auto">
+                        <span class="fs-4 fw-bold">150€</span>
+                        <span class="text-muted">/ mois</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Suivi Nutritionnel & Mental</h5>
+                    <p class="card-text">L'assiette et le mental sont les piliers de votre réussite. On travaille sur tout.</p>
+                     <div class="mt-auto">
+                        <span class="fs-4 fw-bold">90€</span>
+                        <span class="text-muted">/ mois</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="btn btn-secondary mt-4">Découvrir tous les programmes</a>
+</div>
+
+        <hr class="my-5">
+
+       <div class="my-5">
+    <h2 class="text-center">Ce qu'ils en disent</h2>
+
+    <div id="testimonialCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
+        <div class="carousel-inner">
+
+            <div class="carousel-item active">
+                <figure class="text-center px-5">
+                    <blockquote class="blockquote">
+                        <p class="fs-4">"J'ai perdu 15kg en 4 mois sans jamais me sentir frustrée. Une nouvelle vie !"</p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer">
+                        Marie, 32 ans <cite title="Source Title">(Objectif : Perte de poids)</cite>
+                    </figcaption>
+                </figure>
+            </div>
+
+            <div class="carousel-item">
+                <figure class="text-center px-5">
+                    <blockquote class="blockquote">
+                        <p class="fs-4">"Les entraînements sont intenses mais toujours dans la bonne humeur. J'ai enfin passé la barre des 100kg au développé couché."</p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer">
+                        Julien, 25 ans <cite title="Source Title">(Objectif : Prise de masse)</cite>
+                    </figcaption>
+                </figure>
+            </div>
+
+            <div class="carousel-item">
+                <figure class="text-center px-5">
+                    <blockquote class="blockquote">
+                        <p class="fs-4">"Grâce au coaching, j'ai retrouvé une discipline et une énergie que je n'avais plus. Je me sens beaucoup mieux au quotidien."</p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer">
+                        Sophie, 45 ans <cite title="Source Title">(Objectif : Remise en forme)</cite>
+                    </figcaption>
+                </figure>
+            </div>
+
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+        <hr class="my-5">
+
+        <div class="p-5 mb-4 bg-body-tertiary rounded-3 text-center hidden-section">
+            <div class="container-fluid py-5">
+                <h2 class="display-6 fw-bold">Prêt à commencer votre transformation ?</h2>
+                <p class="fs-5">Le meilleur moment pour agir, c’était hier. Le deuxième meilleur moment, c’est maintenant.</br>
+                    🔥Ce n’est pas un rendez-vous, c’est une DÉCISION.🔥</p>
+                <a href="{% url 'prendre-rdv' %}" class="btn btn-primary btn-lg">Réserve ton créneau</a>
+            </div>
+        </div>
+    </div>
 {% endblock %}
