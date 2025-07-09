@@ -25,13 +25,22 @@ def prise_rdv(request):
         messages.error(request, "Le coach n'est pas configuré.")
         return redirect('home')
 
-    # On détermine la date sélectionnée, que ce soit en GET ou en POST
-    date_selectionnee_str = request.GET.get('date') if request.method == 'GET' else request.POST.get('date')
+    # On gère la logique de déplacement au début
+    reschedule_id = request.GET.get('reschedule_id')
+    initial_data = {}
+    if reschedule_id:
+        seance_a_deplacer = get_object_or_404(Seance, pk=reschedule_id, client=request.user)
+        initial_data['sujet'] = seance_a_deplacer.sujet
+        # On stocke l'ID dans la session pour s'en souvenir
+        request.session['seance_a_deplacer_id'] = seance_a_deplacer.id
 
+    # On calcule les créneaux, que la requête soit GET ou POST
+    date_selectionnee_str = request.GET.get('date') if request.method == 'GET' else request.POST.get('date')
     creneaux_disponibles = []
     if date_selectionnee_str:
         try:
             date_obj = datetime.strptime(date_selectionnee_str, '%Y-%m-%d').date()
+            # ... (logique de calcul des créneaux, inchangée)
             heure_debut_journee = time(9, 0)
             heure_fin_journee = time(18, 0)
             duree_seance = timedelta(minutes=30)
@@ -46,8 +55,7 @@ def prise_rdv(request):
             creneaux_disponibles_obj = [t for t in tous_les_creneaux if t not in creneaux_reserves]
             creneaux_disponibles = [(t.strftime('%H:%M'), f"{t.strftime('%Hh%M')}") for t in creneaux_disponibles_obj]
         except (ValueError, TypeError):
-            messages.error(request, "Format de date invalide.")
-            date_selectionnee_str = None
+            pass
 
     if request.method == 'POST':
         form = SeanceForm(request.POST, creneaux=creneaux_disponibles)
@@ -55,16 +63,24 @@ def prise_rdv(request):
             seance = form.save(commit=False)
             seance.client = request.user
             seance.coach = coach
-            seance.save() # Le formulaire gère déjà la conversion des champs
-            messages.success(request, 'Votre rendez-vous a été pris avec succès !')
+            seance.save()
+
+            # --- LOGIQUE DE SUPPRESSION CORRIGÉE ---
+            # On vérifie si un ID était stocké dans la session
+            old_seance_id = request.session.get('seance_a_deplacer_id')
+            if old_seance_id:
+                try:
+                    Seance.objects.get(pk=old_seance_id).delete()
+                    # On nettoie la session pour ne pas supprimer d'autres RDV par erreur
+                    del request.session['seance_a_deplacer_id']
+                    messages.success(request, 'Votre rendez-vous a été déplacé avec succès !')
+                except Seance.DoesNotExist:
+                    pass
+            else:
+                messages.success(request, 'Votre rendez-vous a été pris avec succès !')
+
             return redirect('dashboard')
     else:
-        # Gérer la logique de déplacement pour pré-remplir le sujet
-        reschedule_id = request.GET.get('reschedule_id')
-        initial_data = {}
-        if reschedule_id:
-            seance_a_deplacer = get_object_or_404(Seance, pk=reschedule_id, client=request.user)
-            initial_data['sujet'] = seance_a_deplacer.sujet
         if date_selectionnee_str:
             initial_data['date'] = date_selectionnee_str
         form = SeanceForm(initial=initial_data, creneaux=creneaux_disponibles)
